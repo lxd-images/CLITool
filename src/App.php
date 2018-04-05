@@ -181,7 +181,7 @@ class App extends MagicClass
 
 ## Import & Installation
 
-- `git clone https://github.com/lcherone/'.$safefilename.'.git`
+- `git clone https://github.com/lxd-images/'.$safefilename.'.git`
 - `cd '.$safefilename.'`
 - `./import.sh`
 
