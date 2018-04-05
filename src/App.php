@@ -158,6 +158,7 @@ class App extends MagicClass
                 );
                 `rm "$workingDir" -Rf`;
                 $this->cli->error('Default images cannot be exported. Image has been added to list and will no longer be show.');
+                exit;
             }
 
             if (file_exists($workingDir.'/'.$safefilename.'.tar.bz2')) {
@@ -174,7 +175,7 @@ class App extends MagicClass
 
             `git init`;
 
-            file_put_contents('README.md', '# '.$image.'
+            file_put_contents('README.md', '# '.ucfirst($image).'
 
  - Image fingerprint: `'.$fingerprint.'`
 
