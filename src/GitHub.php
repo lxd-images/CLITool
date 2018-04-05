@@ -11,56 +11,48 @@ class GitHub
     {
         $this->app = $app;
     }
-    
-    public function basepath()
-    {
-        $basepath = '.';
-        if (!empty($pharPath = \Phar::running(false))) {
-            $basepath = dirname($pharPath);
-        }
-        return $basepath;
-    }
-    
-    public function config()
+
+    /**
+     * Load github.yaml
+     * - If username/password passed as params it does not load from config
+     *   For that to happen, cli tool must be run like: 
+     *    - php lxd-images.phar -u github_username -p github_password
+     */
+    public function config($username = null, $password = null)
     {
         $github = [
-            'username' => '',
-            'password' => '',
-            'organization' => ''
+            'username' => $username,
+            'password' => $password
         ];
         
-        $basepath = $this->basepath();
-        
-        if (file_exists($basepath.'/github.yaml')) {
-            try {
-                $github = Yaml::parseFile($basepath.'/github.yaml')+$github;
-            } catch (ParseException $e) {
-                $this->app->cli->error(
-                    sprintf(
-                        'Error: unable to parse github.yaml near: %s line %s.', 
-                        $e->getSnippet(), 
-                        $e->getParsedLine()
-                    )
-                );
-                exit;
-            }
+        if (!empty($github['username']) && !empty($github['password'])) {
+            return $github;
         }
-        
+
+        $basepath = $this->app->filesystem->basepath();
+
+        $github = $this->app->filesystem->load_yaml_file(
+            $basepath.'/github.yaml'
+        ) + $github;
+
         return $github;
     }
-    
+
     public function save_config($filename, $data = [])
     {
-        file_put_contents(
-            $this->basepath().'/'.$filename.'.yaml',
+        $this->app->filesystem->create_file(
+            $this->app->filesystem->basepath().'/'.$filename.'.yaml',
             Yaml::dump($data)
         );
     }
-    
-    public function wizard()
+
+    public function wizard($arguments = [])
     {
-        $github = $this->config();
-        
+        $github = $this->config(
+            ($arguments['username'] ?? null),
+            ($arguments['password'] ?? null)
+        );
+
         if (!empty($github['username']) && !empty($github['password'])) {
             return $github;
         }
@@ -70,19 +62,13 @@ class GitHub
             'Enter github username:',
             (!empty($github['username']) ? $github['username'] : '')
         );
-        
+
         // password
         $github['password'] = $this->app->cli->prompt(
             'Enter github password:',
             (!empty($github['password']) ? $github['password'] : '')
         );
-        
-        // organization
-        $github['organization'] = $this->app->cli->prompt(
-            'Enter github organization:',
-            (!empty($github['organization']) ? $github['organization'] : '')
-        );
-        
+
         // save
         if ($this->app->cli->confirm('Would you like to save these details for next time?')->confirmed()) {
             $this->save_config('github', $github);
@@ -90,30 +76,38 @@ class GitHub
 
         return $github;
     }
-    
+
     public function get_images()
     {
+        // check cache file, cached for 1 hour
+        $images_cache = $this->app->filesystem->basepath().'/images.yaml';
+        if (file_exists($images_cache)) {
+            if (time() - filemtime($images_cache) < 3600) {
+                return (array) $this->app->filesystem->load_yaml_file(
+                    $images_cache,
+                    false
+                );
+            }
+        }
+        
         $client = new \Github\Client();
         $repos = $client->api('user')->repositories('lxd-images');
-        
+
         $images = [];
         foreach ($repos as $repo) {
-            $yaml = file_get_contents('https://raw.githubusercontent.com/'.$repo['full_name'].'/master/image.yaml');
+            $yaml = @file_get_contents(
+                'https://raw.githubusercontent.com/'.$repo['full_name'].'/master/image.yaml'
+            );
+
             if (empty($yaml)) {
                 continue;
             }
-            try {
-                $image_yaml = Yaml::parse($yaml);
-            } catch (ParseException $e) {
-                $this->app->cli->error(
-                    sprintf(
-                        'Error: unable to parse repository image.yaml near: %s line %s.', 
-                        $e->getSnippet(), 
-                        $e->getParsedLine()
-                    )
-                );
+
+            $image_yaml = $this->app->filesystem->load_yaml_string($yaml, false);
+            if (empty($image_yaml)) {
                 continue;
             }
+
             $images[] = [
                 'name' => $repo['name'],
                 'full_name' => $repo['full_name'],
@@ -126,9 +120,9 @@ class GitHub
                 'clone_url' => $repo['clone_url']
             ];
         }
-        
+
         $this->save_config('images', $images);
-        
-        return $repos;
+
+        return $images;
     }
 }

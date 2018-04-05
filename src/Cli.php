@@ -22,6 +22,11 @@ class Cli
         ], null, $value));
     }
     
+    public function out($msg)
+    {
+        $this->climate->out($msg);
+    }
+    
     public function radio ($title, $options)
     {
         return $this->climate->radio($title, $options)->prompt();
@@ -58,39 +63,42 @@ class Cli
     public function arguments()
     {
         $this->climate->arguments->add([
-            'init' => [
-                'prefix'      => 'i',
-                'longPrefix'  => 'init',
-                'description' => 'Create default package.yaml file',
-                'noValue'     => true
+            'fingerprint' => [
+                'prefix'      => 'f',
+                'longPrefix'  => 'fingerprint',
+                'description' => 'Import an image by fingerprint'
             ],
-            'wizard' => [
-                'prefix'      => 'w',
-                'longPrefix'  => 'wizard',
-                'description' => 'Walkthough in creating your package',
-                'noValue'     => true
+            'username' => [
+                'prefix'      => 'u',
+                'longPrefix'  => 'username',
+                'description' => 'Set GitHub username'
+            ],
+            'password' => [
+                'prefix'      => 'p',
+                'longPrefix'  => 'password',
+                'description' => 'Set GitHub password'
             ],
             'help' => [
                 'prefix'      => 'h',
                 'longPrefix'  => 'help',
-                'description' => 'Prints a usage statement',
+                'description' => 'Prints this usage statement',
                 'noValue'     => true
             ]
         ]);
         
         $this->climate->arguments->parse();
-        
+
         $this->app->arguments = [
-            'wizard' => $this->climate->arguments->defined('wizard'),
-            'init'   => $this->climate->arguments->defined('init')
+            'fingerprint' => $this->climate->arguments->get('fingerprint'),
+            'username'    => $this->climate->arguments->get('username'),
+            'password'    => $this->climate->arguments->get('password'),
+            'help'        => $this->climate->arguments->defined('help')
         ];
 
-        if (
-            !empty($this->app->arguments['wizard']) && 
-            !empty($this->app->arguments['init'])
-        ) {
-            $this->climate->error('Error: choose between --wizard or --init, not both.');
-            exit;
+        // show help
+        if ($this->app->arguments['help']) {
+            $this->climate->usage();
+            die();
         }
     }
 
