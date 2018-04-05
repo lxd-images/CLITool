@@ -6,27 +6,26 @@ Its very much a WIP/PoC, dont take it too seriously just yet.
 
 ## Download
 
-You can find prebuilt versions in [releases](...), or simply do wget as shown below:
+You can find prebuilt versions in [releases](https://github.com/lxd-images/CLITool/releases), or simply do wget as shown below:
 
-`get ... .phar`
 
 ## Install
 
 Git clone this project or download a prebuilt verion:
 
 ``` bash
-$ git clone git@github.com:phppackage/package-generator.git . && composer install
+$ git clone git@github.com:lxd-images/CLITool.git . && composer install
 ```
 
 ## Build
 
-To build the `package-generator.phar` run:
+To build the `lxd-images.phar` run:
 
 `bash /usr/bin/php -c /etc/php/7.0/cli/php.ini -f box.phar build -v`
 
 ## Run
 
-`/usr/bin/php package-generator.phar -w`
+`/usr/bin/php lxd-images.phar -w`
 
 ## Contributing
 
