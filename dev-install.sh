@@ -12,7 +12,6 @@ setup_system() {
     # Install system packages
     sudo apt-get -yq install curl wget
     sudo apt-get -yq install unzip
-    sudo apt-get -yq install nano
     sudo apt-get -yq install git
 }
 
@@ -21,8 +20,6 @@ install_php() {
     echo "Installing PHP7.0"
     sudo apt-get -yq install php7.0 php7.0-cli
     sudo apt-get -yq install php7.0-{mbstring,curl,gd,mcrypt,json,xml,mysql,sqlite}
-    #
-    sudo apt-get -yq install libapache2-mod-php7.0
 }
 
 install_composer() {
