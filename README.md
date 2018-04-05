@@ -20,8 +20,6 @@ In case you wanted to contribute or convert for your own needs (if you do at lea
 
 ### Clone & Build
 
-Git clone this project or download a prebuilt verion:
-
 ``` bash
 $ git clone git@github.com:lxd-images/CLITool.git . && composer install
 ```
